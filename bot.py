@@ -8,7 +8,8 @@
 #    (Automatic = "OriginalName [Join @ratsontop].apk")
 #  - Rename ke baad: "Rename Again" ya "Done"
 #  - Cancel button, non-APK file par warning
-#  - Sirf OWNER use kar sakta hai (bot private hai)
+#  - PUBLIC bot — koi bhi user use kar sakta hai
+#  - Har renamed APK FORWARD_CHAT_ID par bhi bheji jati hai
 # ============================================================
 
 import os
@@ -47,10 +48,6 @@ user_state = {}
 
 
 # ---------- Helpers ----------
-def is_owner(user_id: int) -> bool:
-    return user_id == OWNER_ID
-
-
 def sanitize_filename(name: str) -> str:
     r"""Filename mein allowed nahi hone wale characters hatao: / \ : * ? " < > |"""
     name = re.sub(r'[/\\:*?"<>|]', '', name)
@@ -140,11 +137,6 @@ async def send_renamed_apk(client: Client, chat_id: int, state: dict, new_name: 
 # ---------- /start ----------
 @app.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
-    if not is_owner(message.from_user.id):
-        await message.reply_text(
-            "🔒 Ye bot private hai. Sirf owner use kar sakta hai."
-        )
-        return
     await message.reply_text(
         "👋 **Namaste! Main APK Renamer Bot hun.**\n\n"
         "Mujhe koi bhi **.apk** file bhejo, main uska naam badal dunga.\n\n"
@@ -163,11 +155,6 @@ async def start_handler(client: Client, message: Message):
 # ---------- /help ----------
 @app.on_message(filters.command("help") & filters.private)
 async def help_handler(client: Client, message: Message):
-    if not is_owner(message.from_user.id):
-        await message.reply_text(
-            "🔒 Ye bot private hai. Sirf owner use kar sakta hai."
-        )
-        return
     await message.reply_text(
         "❓ **Help — APK Renamer Bot**\n\n"
         "**Commands:**\n"
@@ -186,11 +173,6 @@ async def help_handler(client: Client, message: Message):
 @app.on_message(filters.document & filters.private)
 async def apk_handler(client: Client, message: Message):
     user_id = message.from_user.id
-    if not is_owner(user_id):
-        await message.reply_text(
-            "🔒 Ye bot private hai. Sirf owner use kar sakta hai."
-        )
-        return
 
     doc = message.document
     file_name = doc.file_name or "file.apk"
@@ -236,8 +218,6 @@ async def apk_handler(client: Client, message: Message):
 @app.on_message(filters.text & filters.private & ~filters.command(["start", "help"]))
 async def text_handler(client: Client, message: Message):
     user_id = message.from_user.id
-    if not is_owner(user_id):
-        return
 
     state = user_state.get(user_id)
     if not state or not state.get("waiting_custom"):
@@ -272,10 +252,6 @@ async def text_handler(client: Client, message: Message):
 async def callback_handler(client: Client, callback_query: CallbackQuery):
     user_id = callback_query.from_user.id
     data = callback_query.data
-
-    if not is_owner(user_id):
-        await callback_query.answer("🔒 Ye bot private hai.", show_alert=True)
-        return
 
     state = user_state.get(user_id)
 
