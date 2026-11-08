@@ -5,8 +5,8 @@
 # Features:
 #  - /start, /help
 #  - Koi bhi file bhejne par 2 options: Custom Name ya Automatic
-#    (Automatic = "OriginalName [Join @ratsontop].<ext>"
-#     — original extension waisi hi rehti hai)
+#    (Automatic = "[Join @ratsontop].<ext>" — original naam HATA
+#     diya jata hai, sirf extension waisi hi rehti hai)
 #  - Rename ke baad: "Rename Again" ya "Done"
 #  - Cancel button
 #  - PUBLIC bot — koi bhi user use kar sakta hai
@@ -160,8 +160,8 @@ async def start_handler(client: Client, message: Message):
         "2️⃣ 2 options milegi:\n"
         "   ✏️ **Custom Name** — apni marzi ka naam likho\n"
         "   ⚡ **Automatic** — naam ban jayega:\n"
-        "   `OriginalName [Join @ratsontop].ext`\n"
-        "   (file ka format/extension waisa hi rahega)\n"
+        "   `[Join @ratsontop].ext`\n"
+        "   (original naam hat jayega, file ka format/extension waisa hi rahega)\n"
         "3️⃣ Renamed file wapas mil jayegi\n"
         "4️⃣ **Rename Again** se dobara naam badlo, ya **Done** dabao\n\n"
         "👉 Ab ek file bhej kar try karo!"
@@ -180,8 +180,8 @@ async def help_handler(client: Client, message: Message):
         "1. Koi bhi file bhejo (APK, ZIP, PDF, MP3, MP4, photo — kuch bhi)\n"
         "2. **Custom Name** — apna naam likho (extension na likho to "
         "original wali lag jayegi), ya\n"
-        "   **Automatic** — `[Join @ratsontop]` wala naam apne aap ban jayega, "
-        "file ka format waisa hi rahega\n"
+        "   **Automatic** — `[Join @ratsontop]` wala naam apne aap ban jayega "
+        "(original naam hat jayega), file ka format waisa hi rahega\n"
         "3. Renamed file milegi, phir **Rename Again** ya **Done**\n\n"
         "**Note:** Har renamed file ek copy ke roop mein forward chat par bhi bheji jati hai."
     )
@@ -303,11 +303,12 @@ async def callback_handler(client: Client, callback_query: CallbackQuery):
         return
 
     # --- Automatic ---
+    # Original naam HATA kar sirf automatic naam lagao:
+    # "[Join @ratsontop].<ext>" — extension original wali rehti hai.
     if data == "auto":
         state["waiting_custom"] = False
-        original = state["original_name"]
-        base, ext = os.path.splitext(original)
-        new_name = f"{base} [Join @ratsontop]{ext}"
+        ext = state.get("extension", "")
+        new_name = f"[Join @ratsontop]{ext}"
         try:
             await send_renamed_apk(
                 client, callback_query.message.chat.id, state, new_name
